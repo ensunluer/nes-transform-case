@@ -1,35 +1,34 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+// third-party
+import { useQuery } from '@tanstack/react-query';
+// types
+import { IPostItem, PostReturnType } from './types.ts';
+// styles
+import './App.css';
 
 function App() {
-  const [count, setCount] = useState(0)
+
+  const { isPending: postIsPending, error: postsError, data: posts } = useQuery<PostReturnType>({
+    queryKey: ['postsData'],
+    queryFn: () =>
+      fetch('https://jsonplaceholder.typicode.com/posts').then((res: Response) =>
+        res.json(),
+      ),
+  });
+
+  if (postIsPending) return 'Loading...';
+
+  if (postsError) return 'An error has occurred: ' + postsError.message;
 
   return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      {posts?.map((post: IPostItem) => (
+        <div key={post.id}>
+          <h1>{post.title}</h1>
+          <p>{post.body}</p>
+        </div>
+      ))}
     </>
-  )
+  );
 }
 
-export default App
+export default App;
