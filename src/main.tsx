@@ -7,10 +7,6 @@ import {
 } from '@tanstack/react-query';
 // components
 import App from './App.tsx';
-// styles
-import './index.css';
-
-
 
 const queryClient: QueryClient = new QueryClient();
 

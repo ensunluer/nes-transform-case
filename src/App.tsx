@@ -1,33 +1,46 @@
+import { useMemo } from 'react';
 // third-party
+import { ConfigProvider } from 'antd';
 import { useQuery } from '@tanstack/react-query';
+// components
+import SelectComponent from './components';
+import Loading from './components/Loading.tsx';
+// style
+import { GlobalStyle } from './style.tsx';
+// utils
+import { fetchData } from './utils';
 // types
-import { IPostItem, PostReturnType } from './types.ts';
-// styles
-import './App.css';
+import { IUserItem, UserReturnType } from './types.ts';
 
 function App() {
 
-  const { isPending: postIsPending, error: postsError, data: posts } = useQuery<PostReturnType>({
-    queryKey: ['postsData'],
-    queryFn: () =>
-      fetch('https://jsonplaceholder.typicode.com/posts').then((res: Response) =>
-        res.json(),
-      ),
+  const {
+    isPending: usersPending,
+    error: usersError,
+    data: users,
+  } = useQuery<UserReturnType>({
+    queryKey: ['usersData'],
+    queryFn: () => fetchData('https://jsonplaceholder.typicode.com/users'),
   });
 
-  if (postIsPending) return 'Loading...';
+  const memoizedMergedData = useMemo(() => {
+    return users?.map((user: IUserItem) => ({
+      id: user.id,
+      name: user.name,
+      username: user.username.toLowerCase(),
+      image: `https://i.pravatar.cc/150?u=${user.id}`,
+    })) || [];
+  }, [users]);
 
-  if (postsError) return 'An error has occurred: ' + postsError.message;
+  if (usersPending) return <Loading />;
+
+  if (usersError) return 'An error has occurred: ' + usersError.message;
 
   return (
-    <>
-      {posts?.map((post: IPostItem) => (
-        <div key={post.id}>
-          <h1>{post.title}</h1>
-          <p>{post.body}</p>
-        </div>
-      ))}
-    </>
+    <ConfigProvider theme={{ cssVar: true }}>
+      <GlobalStyle />
+      <SelectComponent users={memoizedMergedData} />
+    </ConfigProvider>
   );
 }
 
